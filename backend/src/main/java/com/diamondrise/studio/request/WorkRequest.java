@@ -33,6 +33,11 @@ public class WorkRequest {
     @Column(length = 100)
     private String planModel;
 
+    @Column(length = 100)
+    private String opinionModel;
+
+    private Instant planGeneratedAt;
+
     @jakarta.persistence.Lob
     private String planningOpinion;
 
@@ -67,16 +72,31 @@ public class WorkRequest {
     }
 
     public void savePlan(String plan, String planModel) {
-        this.plan = plan;
+        this.plan = plan == null ? null : plan.trim();
         this.planModel = planModel;
+        this.planGeneratedAt = Instant.now();
     }
 
     public void saveOpinions(String planning, String development, String art, String model) {
         this.planningOpinion = planning;
         this.developmentOpinion = development;
         this.artOpinion = art;
-        this.plan = String.join("\n\n", planning, development, art);
-        this.planModel = model;
+        this.opinionModel = model;
+        this.plan = null;
+        this.planModel = null;
+        this.planGeneratedAt = null;
+    }
+
+    public boolean hasCompleteDepartmentOpinions() {
+        return hasText(planningOpinion) && hasText(developmentOpinion) && hasText(artOpinion);
+    }
+
+    public boolean hasGeneratedPlan() {
+        return hasText(plan) && planGeneratedAt != null;
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 
     public UUID getId() { return id; }
@@ -85,6 +105,8 @@ public class WorkRequest {
     public String getTeam() { return team; }
     public String getPlan() { return plan; }
     public String getPlanModel() { return planModel; }
+    public String getOpinionModel() { return opinionModel; }
+    public Instant getPlanGeneratedAt() { return planGeneratedAt; }
     public String getPlanningOpinion() { return planningOpinion; }
     public String getDevelopmentOpinion() { return developmentOpinion; }
     public String getArtOpinion() { return artOpinion; }

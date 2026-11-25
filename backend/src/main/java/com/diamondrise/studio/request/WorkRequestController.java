@@ -52,9 +52,15 @@ public class WorkRequestController {
         if (workRequest.getStatus() != RequestStatus.PENDING_APPROVAL) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "승인 대기 중인 요청만 계획을 만들 수 있습니다.");
         }
+        if (!workRequest.hasCompleteDepartmentOpinions()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "기획·개발·아트팀 의견이 모두 모인 뒤 종합 계획을 만들 수 있습니다.");
+        }
         try {
-            DepartmentAgentService.PlanDraft draft = agents.generatePlan(
-                    workRequest.getTeam(), workRequest.getTitle(), workRequest.getDescription());
+            DepartmentAgentService.PlanDraft draft = agents.synthesizeProjectPlan(
+                    workRequest.getTitle(), workRequest.getDescription(),
+                    workRequest.getPlanningOpinion(), workRequest.getDevelopmentOpinion(),
+                    workRequest.getArtOpinion());
             workRequest.savePlan(draft.content(), draft.model());
             return RequestView.from(repository.save(workRequest));
         } catch (ResourceAccessException exception) {
@@ -98,8 +104,13 @@ public class WorkRequestController {
         if (workRequest.getStatus() != RequestStatus.PENDING_APPROVAL) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 처리된 요청입니다.");
         }
-        if (request.approved() && (workRequest.getPlan() == null || workRequest.getPlan().isBlank())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "승인 전에 부서 AI 계획 초안을 먼저 만들어 주세요.");
+        if (request.approved() && !workRequest.hasCompleteDepartmentOpinions()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "승인 전에 세 부서 의견을 모두 받아야 합니다.");
+        }
+        if (request.approved() && !workRequest.hasGeneratedPlan()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "승인 전에 세 부서 의견을 종합한 실행 계획을 먼저 만들어 주세요.");
         }
         RequestStatus status = request.approved() ? RequestStatus.APPROVED : RequestStatus.REJECTED;
         workRequest.decide(status);
@@ -116,20 +127,23 @@ public class WorkRequestController {
     public record DepartmentOpinionView(String team, String content, String model) {}
 
     public record RequestView(UUID id, String title, String description, String team, String plan,
-                              String planModel, List<DepartmentOpinionView> opinions,
-                              RequestStatus status, Instant createdAt, Instant decidedAt) {
+                              String planModel, Instant planGeneratedAt,
+                              List<DepartmentOpinionView> opinions, RequestStatus status,
+                              Instant createdAt, Instant decidedAt) {
         static RequestView from(WorkRequest request) {
             return new RequestView(request.getId(), request.getTitle(), request.getDescription(),
-                    request.getTeam(), request.getPlan(), request.getPlanModel(),
+                    request.getTeam(), request.hasGeneratedPlan() ? request.getPlan() : null,
+                    request.hasGeneratedPlan() ? request.getPlanModel() : null,
+                    request.getPlanGeneratedAt(),
                     opinionsFrom(request), request.getStatus(),
                     request.getCreatedAt(), request.getDecidedAt());
         }
 
         private static List<DepartmentOpinionView> opinionsFrom(WorkRequest request) {
             return List.of(
-                    new DepartmentOpinionView("기획팀", request.getPlanningOpinion(), request.getPlanModel()),
-                    new DepartmentOpinionView("개발팀", request.getDevelopmentOpinion(), request.getPlanModel()),
-                    new DepartmentOpinionView("아트팀", request.getArtOpinion(), request.getPlanModel()))
+                    new DepartmentOpinionView("기획팀", request.getPlanningOpinion(), request.getOpinionModel()),
+                    new DepartmentOpinionView("개발팀", request.getDevelopmentOpinion(), request.getOpinionModel()),
+                    new DepartmentOpinionView("아트팀", request.getArtOpinion(), request.getOpinionModel()))
                     .stream().filter(opinion -> opinion.content() != null && !opinion.content().isBlank()).toList();
         }
     }
