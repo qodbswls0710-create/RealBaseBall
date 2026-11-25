@@ -1,0 +1,28 @@
+# IntelliJ IDEA and local workspace state
+.idea/
+**/.idea/workspace.xml
+**/.idea/tasks.xml
+**/.idea/usage.statistics.xml
+*.iml
+
+# Java build output and local data
+**/target/
+backend/data/*.db
+backend/data/*.mv.db
+backend/data/*.lock.db
+backend/data/*.trace.db
+*.log
+
+# Frontend dependencies and build output
+**/node_modules/
+frontend/dist/
+frontend/.vercel/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
