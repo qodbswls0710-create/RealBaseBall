@@ -1,0 +1,25 @@
+export const statusLabels = {
+  PENDING_APPROVAL: "검토 중",
+  APPROVED: "승인 완료",
+  REJECTED: "반려",
+};
+export function DiamondMark({ small = false }: { small?: boolean }) {
+  return (
+    <span className={`diamond-mark ${small ? "small" : ""}`} aria-hidden="true">
+      <svg viewBox="0 0 40 40" fill="none">
+        <path
+          d="M20 3 37 20 20 37 3 20Z"
+          stroke="currentColor"
+          strokeWidth="1.5"
+        />
+        <path d="m20 10 10 10-10 10-10-10Z" fill="currentColor" opacity=".15" />
+        <path
+          d="M15 25V15h4c7 0 7 10 0 10Zm8-10 3 10m-1.5-5H28"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
