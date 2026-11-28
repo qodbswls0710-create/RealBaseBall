@@ -13,7 +13,7 @@ import {
   Target,
 } from "lucide-react";
 import { isPreviewMode } from "./api";
-import { statusLabels } from "./ui";
+import { executionStatusLabels, statusLabels } from "./ui";
 import type { WorkRequest } from "./types";
 import OpinionText from "./OpinionText";
 import Modal from "./Modal";
@@ -350,10 +350,18 @@ export default function ReviewWorkspace({
               ? `${new Date(directive.decidedAt).toLocaleString("ko-KR")}에 디렉터의 결정이 기록되었습니다.`
               : "세 부서 의견을 검토하고 아래에서 승인 또는 반려를 기록해 주세요."}
           </p>
+          {directive.status === "APPROVED" && (
+            <div className="detail-metadata">
+              <span>
+                다음 단계 <strong>{executionStatusLabels[directive.executionStatus]}</strong>
+              </span>
+            </div>
+          )}
           <div className="safe-note">
             <ShieldCheck size={17} />
-            승인은 지시 상태만 변경합니다. 게임 파일 수정이나 개발 실행은
-            수행하지 않습니다.
+            {directive.status === "APPROVED"
+              ? "승인 기록은 저장됐습니다. Unity 프로젝트 연결과 안전 실행기는 아직 연결되지 않아 게임 파일은 변경되지 않았습니다."
+              : "승인은 지시 상태만 변경합니다. 게임 파일 수정이나 개발 실행은 수행하지 않습니다."}
           </div>
         </section>
       )}
@@ -372,7 +380,9 @@ export default function ReviewWorkspace({
           <div>
             <h3>
               {!pending
-                ? "디렉터의 결정이 기록되었습니다"
+                ? directive.status === "APPROVED"
+                  ? "승인 완료 · Unity 프로젝트 연결 대기"
+                  : "디렉터의 반려가 기록되었습니다"
                 : ready
                   ? planReady
                     ? "다음 플레이는 디렉터의 결정으로"
@@ -381,7 +391,9 @@ export default function ReviewWorkspace({
             </h3>
             <p>
               {!pending
-                ? "이 지시는 검토가 종료되어 의견을 다시 요청할 수 없습니다."
+                ? directive.status === "APPROVED"
+                  ? "종합 계획은 승인됐습니다. Unity 프로젝트 경로가 연결되면 격리 작업공간과 변경 검토 단계를 이어갑니다."
+                  : "이 지시는 검토가 종료되어 의견을 다시 요청할 수 없습니다."
                 : "세 부서 의견과 종합 계획이 모두 있어야 승인할 수 있습니다. 실제 개발은 실행되지 않습니다."}
             </p>
           </div>

@@ -129,13 +129,14 @@ public class WorkRequestController {
     public record RequestView(UUID id, String title, String description, String team, String plan,
                               String planModel, Instant planGeneratedAt,
                               List<DepartmentOpinionView> opinions, RequestStatus status,
+                              ExecutionStatus executionStatus,
                               Instant createdAt, Instant decidedAt) {
         static RequestView from(WorkRequest request) {
             return new RequestView(request.getId(), request.getTitle(), request.getDescription(),
                     request.getTeam(), request.hasGeneratedPlan() ? request.getPlan() : null,
                     request.hasGeneratedPlan() ? request.getPlanModel() : null,
                     request.getPlanGeneratedAt(),
-                    opinionsFrom(request), request.getStatus(),
+                    opinionsFrom(request), request.getStatus(), request.getExecutionStatus(),
                     request.getCreatedAt(), request.getDecidedAt());
         }
 

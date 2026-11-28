@@ -3,6 +3,15 @@ export const statusLabels = {
   APPROVED: "승인 완료",
   REJECTED: "반려",
 };
+
+export const executionStatusLabels = {
+  NOT_STARTED: "실행 전",
+  WAITING_FOR_UNITY: "Unity 프로젝트 연결 대기",
+  READY: "실행 준비 완료",
+  RUNNING: "실행 중",
+  COMPLETED: "실행 완료",
+  FAILED: "실행 실패",
+};
 export function DiamondMark({ small = false }: { small?: boolean }) {
   return (
     <span className={`diamond-mark ${small ? "small" : ""}`} aria-hidden="true">

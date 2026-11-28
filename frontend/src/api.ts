@@ -143,6 +143,7 @@ export async function studioFetch(
       planGeneratedAt: null,
       opinions: [],
       status: "PENDING_APPROVAL",
+      executionStatus: "NOT_STARTED",
       createdAt: new Date().toISOString(),
       decidedAt: null,
     };
@@ -197,6 +198,9 @@ export async function studioFetch(
     return error("승인하려면 생성된 종합 실행 계획이 필요합니다.", 409);
   }
   request.status = body.approved ? "APPROVED" : "REJECTED";
+  request.executionStatus = body.approved
+    ? "WAITING_FOR_UNITY"
+    : "NOT_STARTED";
   request.decidedAt = new Date().toISOString();
   return json(request);
 }

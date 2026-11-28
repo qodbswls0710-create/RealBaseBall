@@ -197,6 +197,8 @@ export function createPreviewFixtures(): WorkRequest[] {
           )
         : {}),
       status: directive.status,
+      executionStatus:
+        directive.status === "APPROVED" ? "WAITING_FOR_UNITY" : "NOT_STARTED",
       createdAt: new Date(Date.UTC(2026, 10, 25 - index, 9)).toISOString(),
       decidedAt:
         directive.status === "PENDING_APPROVAL"

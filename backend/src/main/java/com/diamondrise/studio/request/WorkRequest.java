@@ -51,6 +51,10 @@ public class WorkRequest {
     @Column(nullable = false, length = 30)
     private RequestStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "execution_status", length = 30)
+    private ExecutionStatus executionStatus;
+
     @Column(nullable = false)
     private Instant createdAt;
 
@@ -69,6 +73,9 @@ public class WorkRequest {
     public void decide(RequestStatus decision) {
         this.status = decision;
         this.decidedAt = Instant.now();
+        this.executionStatus = decision == RequestStatus.APPROVED
+                ? ExecutionStatus.WAITING_FOR_UNITY
+                : ExecutionStatus.NOT_STARTED;
     }
 
     public void savePlan(String plan, String planModel) {
@@ -111,6 +118,13 @@ public class WorkRequest {
     public String getDevelopmentOpinion() { return developmentOpinion; }
     public String getArtOpinion() { return artOpinion; }
     public RequestStatus getStatus() { return status; }
+    public ExecutionStatus getExecutionStatus() {
+        if (executionStatus != null) return executionStatus;
+        // Keep existing H2 rows readable after adding the execution status column.
+        return status == RequestStatus.APPROVED
+                ? ExecutionStatus.WAITING_FOR_UNITY
+                : ExecutionStatus.NOT_STARTED;
+    }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getDecidedAt() { return decidedAt; }
 }
